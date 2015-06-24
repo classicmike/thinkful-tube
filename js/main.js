@@ -1,19 +1,28 @@
 (function(){
     var thinkfulTube = {};
 
-    thinkfulTube.VideoResult = function(id, thumbnailUrl){
+    thinkfulTube.VideoResult = function(id, thumbnailUrl, caption){
         this.id = id;
         this.thumbnailUrl = thumbnailUrl;
+        this.caption = caption;
     };
 
     thinkfulTube.VideoList = function(){
-        this.items = [];
+        this.setUp();
     };
 
     thinkfulTube.VideoList.prototype = Object.create(EventEmitter.prototype);
     thinkfulTube.VideoList.prototype.constructor = thinkfulTube.VideoList;
 
+    //reset the search list results
+    thinkfulTube.VideoList.prototype.setUp = function(){
+        this.items = [];
+    };
+
     thinkfulTube.VideoList.prototype.searchAndRetrieveResults = function(searchTerms){
+        //reset the lists;
+        this.setUp();
+
         if(!searchTerms){
             return;
         };
@@ -21,7 +30,9 @@
         var apiParameters = {
             part: thinkfulTube.VideoList.PART_PARAMETER,
             q: searchTerms,
-            key: thinkfulTube.VideoList.APIKEY
+            key: thinkfulTube.VideoList.APIKEY,
+            type: thinkfulTube.VideoList.TYPE,
+            maxResults: thinkfulTube.VideoList.MAX_RESULTS
         };
 
         $.get(thinkfulTube.VideoList.YOUTUBE_URL, apiParameters)
@@ -33,29 +44,23 @@
     thinkfulTube.VideoList.prototype.processResults = function(results){
         var searchItems = results.items;
         for(var i = 0; i < searchItems.length; i++){
-            console.log('Getting a result');
             var item = searchItems[i];
 
             if(item.id.kind === 'youtube#video'){
-                var video = new thinkfulTube.VideoResult(item.id.videoId, item.snippet.thumbnails.medium.url);
+                var video = new thinkfulTube.VideoResult(item.id.videoId, item.snippet.thumbnails.high.url, item.snippet.title);
                 this.items.push(video);
             }
         }
 
-        console.log(this.items);
-
         this.emitEvent('update-results');
-    };
-
-    thinkfulTube.VideoList.prototype.processError = function(error){
-        console.log(error);
-
     };
 
 
     thinkfulTube.VideoList.YOUTUBE_URL = 'https://www.googleapis.com/youtube/v3/search';
     thinkfulTube.VideoList.PART_PARAMETER = 'snippet';
     thinkfulTube.VideoList.APIKEY = 'AIzaSyCXkCmtPrjb7pmve6uhvS9IuoN5-yXnSOQ';
+    thinkfulTube.VideoList.MAX_RESULTS = 12;
+    thinkfulTube.VideoList.TYPE = 'video';
 
 
     thinkfulTube.Controller = function(){
@@ -65,8 +70,8 @@
     };
 
     thinkfulTube.Controller.prototype.processSearch = function(searchTerms){
-        if(!searchTerms){
-            console.log('No search terms were entered');
+        if(!searchTerms || searchTerms.length < 1){
+            this.view.notifyOfError(thinkfulTube.View.SEARCH_TERMS);
             return;
         }
 
@@ -78,9 +83,9 @@
     };
 
     thinkfulTube.Controller.prototype.updateResults = function(){
-        console.log('Rendering results');
         this.view.renderResults();
     };
+
 
     thinkfulTube.View = function(controller){
         this.controller = controller;
@@ -96,8 +101,8 @@
     };
 
     thinkfulTube.View.prototype.processSearch = function(event){
-        console.log('Submitting');
         event.preventDefault();
+        this.showLoading();
 
         var inputElement = $(event.target).find('input[type="text"]');
 
@@ -118,18 +123,39 @@
 
             for(var i = 0; i < results.length; i++){
                 var videoObject = results[i];
-                resultsHTML.append('<li><a href="' + thinkfulTube.View.YOUTUBE_WATCH_URL + videoObject.id +'" target="_blank"><img src="' + videoObject.thumbnailUrl+ '" /></li>')
+                resultsHTML.append('<li class="text-center"><a href="' + thinkfulTube.View.YOUTUBE_WATCH_URL + videoObject.id +'" target="_blank"><img src="' + videoObject.thumbnailUrl+ '" /><h5>' + videoObject.caption + '</h5></li>')
             }
-
-
         }
 
-        this.searchResultsElement.append(resultsHTML);
+        this.searchResultsElement.html(resultsHTML);
+    };
+
+    thinkfulTube.View.prototype.showLoading = function(){
+        this.searchResultsElement.html('<p class="' + thinkfulTube.View.LOADING_ELEMENT_CLASS + '">Loading Results. Please Wait....</p>');
+    };
+
+    thinkfulTube.View.prototype.hideLoading = function(){
+        this.searchResultsElement.find('.' + thinkfulTube.View.LOADING_ELEMENT_CLASS).remove();
+    };
+
+    thinkfulTube.View.prototype.notifyOfError = function(error){
+        var message = '';
+        if(!error|| typeof error !== 'string'){
+            message = 'There seems to be an uncaught error please try again or contact me at vi3t4lyfe69@gmail.com if you experiencing problems';
+        } else {
+            message = error;
+        }
+
+        this.hideLoading();
+        alert(message);
     };
 
     thinkfulTube.View.SEARCH_ELEMENT_ID = '#search-form';
     thinkfulTube.View.SEARCH_RESULTS_ID = '#search-results';
-    thinkfulTube.View.YOUTUBE_WATCH_URL = 'https://www.youtube.com/watch?v='
+    thinkfulTube.View.YOUTUBE_WATCH_URL = 'https://www.youtube.com/watch?v=';
+    thinkfulTube.View.UNCAUGHT_ERROR_MESSAGE = 'There seems to be an uncaught error please try again or contact me at vi3t4lyfe69@gmail.com if you experiencing problems';
+    thinkfulTube.View.SEARCH_TERMS = 'Please enter a set of search terms';
+    thinkfulTube.View.LOADING_ELEMENT_CLASS = 'loading';
 
 
     $(document).ready(function(){
