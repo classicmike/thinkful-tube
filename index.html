@@ -1,0 +1,55 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Foundation | Welcome</title>
+    <link rel="stylesheet" href="css/foundation.css" />
+    <script src="js/vendor/modernizr.js"></script>
+  </head>
+  <body>
+
+      <nav class="top-bar" data-topbar role="navigation">
+          <ul class="title-area">
+              <li class="name">
+                  <h1><a href="javascript:void(0)">Thinkful Tube</a></h1>
+              </li>
+              <!-- Remove the class "menu-icon" to get rid of menu icon. Take out "Menu" to just have icon alone -->
+          </ul>
+      </nav>
+
+      <div class="row">
+          <div class="small-12 columns" style="padding-top: 1.25rem;">
+            <h1>Search for videos from Youtube Now!</h1>
+              <form id="search-form" method="post" action="">
+                  <div class="row">
+                      <div class="large-12 columns">
+                          <div class="row collapse">
+                              <div class="small-10 columns">
+                                  <input id="search-text" type="text" placeholder="Search for videos!">
+                              </div>
+                              <div class="small-2 columns">
+                                  <input type="submit" class="button postfix" value="Go!">
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+                  <div class="row">
+                      <div id="search-results" class="small-12 columns">
+                          <!--- Stick the block grid of rows here --->
+                          <p>Your search results will appear here....</p>
+                          <!--- Stick the block grid of rows here --->
+                      </div>
+                  </div>
+              </form>
+          </div>
+      </div>
+      <script src="//cdnjs.cloudflare.com/ajax/libs/EventEmitter/4.2.11/EventEmitter.js"></script>
+      <script src="js/vendor/jquery.js"></script>
+    <script src="js/foundation.min.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+      $(document).foundation();
+    </script>
+  </body>
+</html>
